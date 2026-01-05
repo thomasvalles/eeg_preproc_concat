@@ -1,0 +1,52 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2513
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fswiss\fcharset0 Helvetica-Bold;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww28360\viewh10600\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Step 1: File Renaming\
+	a. All Files need to be in the naming convention as shown by the examples below:\
+	\'930345_During_Session1_Series1.cnt\'94\
+	\'930345_PRE_Session1_Series1.cnt\'94\
+	\'930345_POST_Session1_Series1.cnt\'94\
+	\
+	\'930346_During_Session15_Series2.cnt\'94\
+	\'930346_PRE_Session15_Series2.cnt\'94\
+	\'930346_POST_Session15_Series2.cnt\'94\
+\
+	b. The options to change in the filename are the Subject ID, Session order(\'93During\'94, \'93PRE\'94, \'93POST\'94), Session Number, and Series Number.\
+\
+Step 2: In Matlab, run the script \'93Step1_Merge_ConvertToSet_ButlerEntrainment.m\'94\
+	a. Line 8: Set str_DirInput to directory with renamed CNT files\
+	b. Line 9: Set str_DirOutput to directory to store MergedSet files\
+	c. Line 146: Set path for electrode locations file\
+	d. Line 191: Set path for electrode locations file\
+Step 3: In Matlab, run the script \'93Step2_BrushInterrogationTriggers.m\'94\
+	a. Line 13: Set rawDataDir to directory with MergedSetFiles \
+	b. Line 14: Set saveDir to output directory for BrushedTriggers\
+	c. Line 15: Set SaveDirFasterInput to directory for FasterInput\
+	d. Line 279: Set path for electrode locations file\
+\
+	
+\f1\b Running
+\f0\b0 : \
+		1r. You will be prompted to brush the interrogation section of the files. Use the cursor on the figure window to highlight only the data during the interrogation. It is okay to go a little before and after. Type \'911\'92 once you are done and press enter.\
+		2r. If there are no triggers present in the file, you will be asked which method you want to use to detect triggers manually, initially type \'911\'92 and press enter.\
+		3r. A new figure will pop up. Use the magnifying glass to choose a cutoff, positive or negative, that is lower than all of the peaks for the interrogations. Enter this value and press enter.\
+		4r. You will then be prompted with a figure and text telling you how many interrogations were detected. Make sure all are detected. \
+			If they are detected, in the prompt press \'911\'92 to continue onto the next file.\
+			If they are not all detected, press 0 and you will return to step 1r. You can choose to reuse the detection option 1 or can try option 2 to see if it gives you better results. If you are unable to detect all of the triggers after multiple tries, note the subject number and report this to UCLA for team to process.\
+		5r. Once you are done with all files, the script will continue to run and finish processing. \
+\
+Step 4: In Matlab command window, type \'93FASTER_GUI\'94\
+	a. Click \'91Load Job\'92 and select the file \'93Step3_FASTER4Entrainment.eegjob\'94\
+	b. Change the \'93Job Directory\'94 to the Faster Input Directory\
+	c. Change the \'93Output Directory\'94 to the Faster Output directory\
+	d. Change the channel locations directory to the electrode locations file on your computer.\
+	e. Press \'91Run Job\'92. This process will take time to run..\
+\
+Step 5: In Matlab, run the script \'93Step4_ReplacewWhiteNoise.m\'94\
+	a. Line 6: Set dirData to the Faster Output directory\
+	b. Line 7: Set saveDir to the FinishedFiles directory\
+	}

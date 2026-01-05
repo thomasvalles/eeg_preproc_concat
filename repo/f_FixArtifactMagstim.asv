@@ -1,0 +1,112 @@
+function [YPre2, YPost21] = f_FixArtifactMagstim(EEGdata, pre_sec, post_sec, burst_start, burst_end, srate)
+% f_FixArtifactMagstim - Iterates through list of detrending methods until
+% tolerance criteria is met or list is exhausted. For now, we will first
+% try the magventure method, then try increasing the cut on post data from
+% 20ms to 35ms. 
+%
+% Input:
+%   EEGdata:        The signal (one channel, entire recording) to detrend.
+%
+%   pre_sec:        The amount of time (in seconds) to cut before
+%                   stimulation
+%
+%   post_sec:       The amount of time (in seconds) to cut after
+%                   stimulation (first one to try)
+%
+%   burst_start:    Sample at which the burst of interest starts
+%
+%   burst_end:      Sample at which the burst ends
+%
+%   srate:          The sampling rate of the EEG
+%
+% Output:
+%   YPre2:          The pre-stimulation signal, demeaned and quadratically 
+%                   detrended
+%
+%   YPost21:        The post-stimulation signal, demeaned and detrended
+%
+%   post_sec:       The value of post_sec used 
+%
+% T. Valles 2024
+
+    % post_sec_options = [post_sec, 0.035];
+    % 
+    % % list of detrending methods to try
+    % methods = {@() f_DemeanAndDetrend(EEGdata, pre_sec, post_sec_options(1), burst_start, burst_end, srate, 1), ...
+    %            @() f_DemeanAndDetrend(EEGdata, pre_sec, post_sec_options(2), burst_start, burst_end, srate, 2)};
+    % 
+    % 
+    % checking_window = 500;
+    % range_tolerance = 50;
+    % 
+    % % for each method
+    % for imethod = 1:length(methods)
+    % 
+    %     % try that method
+    %     [YPre2, YPost21] = methods{imethod}();
+    % 
+    %     post_sec = post_sec_options(imethod);
+    % 
+    %     % check if the range within the first 500 samples isn't too large
+    %     if (range(YPost21(1:checking_window)) < range_tolerance)
+    %         break;
+    %     end
+    % 
+    % end
+
+    % [~, YPost_tmp] = f_DemeanPreAndPost(EEGdata, pre_sec, post_sec, burst_start, burst_end, srate);
+    % window_size = 30;
+    % ratio_tolerance = 8;
+    % slope_first_group = (YPost_tmp(window_size + 1) - YPost_tmp(1)) / window_size;
+    % slope_second_group = (YPost_tmp(2 * window_size + 1) - YPost_tmp(window_size + 1)) / window_size; 
+
+        % if burst_start == 2740579
+        %     figure;
+        %     plot(YPost);
+        %     input('');
+        % end
+
+    % if (slope_second_group == 0) || (abs(slope_first_group) / abs(slope_second_group) < ratio_tolerance)
+    %     [YPre2, YPost21] = f_DemeanAndDetrend(EEGdata, pre_sec, post_sec, burst_start, burst_end, srate, 2);
+    % else
+    %     post_sec = 0.035;
+    %     [YPre2, YPost21] = f_DemeanAndDetrend(EEGdata, pre_sec, post_sec, burst_start, burst_end, srate, 1);
+    %     disp(num2str(burst_start));
+    % 
+    % end
+    
+    %[YPre2, YPost21, num_pre_samples_deleted] = f_DemeanAndDetrend(EEGdata, pre_sec, post_sec, burst_start, burst_end, srate, 3);
+    % 
+
+    if srate == 16000
+        [YPre,]
+    end
+    [~, YPost_tmp] = f_DemeanPreAndPost(EEGdata, pre_sec, post_sec, burst_start, burst_end, srate);
+    step = 100;
+    arcs = f_CalcARCs(YPost_tmp, step);
+    if (arcs(1) > 0) && (numel(arcs(arcs < 0)) / numel(arcs) > 0.60) % if the cliff shape
+        [~, ind] = max(YPost_tmp);
+        try
+            YPost21 = [f_DetrendLogFull(YPost_tmp(1:ind)); f_DetrendLogFull(YPost_tmp((ind + 1):end))]';
+        catch
+            YPost21 = [detrend(YPost_tmp(1:ind))'; detrend(YPost_tmp((ind + 1):end))']';
+        end
+        [YPre2, ~] = f_DemeanAndDetrend(EEGdata, pre_sec, post_sec, burst_start, burst_end, srate, 1);
+    else
+        [YPre2, YPost21] = f_DemeanAndDetrend(EEGdata, pre_sec, post_sec, burst_start, burst_end, srate, 2);
+    end
+
+    % use the filtered data to check to see if we need pchip.
+    % does not return the filtered data.
+    YPost21_tmp = highpass(YPost21, 1, srate);
+    YPost21_tmp = lowpass(YPost21_tmp, 55, srate);
+
+    range_check_cutoff = 1000; % sample at the end of the first group
+    range_comparison_tolerance = 10; % if the range in the first group is this % greater than range in second group, do pchip
+                                        
+    if range(YPost21_tmp(1:range_check_cutoff)) > (1 + range_comparison_tolerance / 100) * range(YPost21_tmp(range_check_cutoff + 1:end))
+        [~, YPost21] = f_DemeanAndDetrend(EEGdata, pre_sec, post_sec, burst_start, burst_end, srate, 3);
+    end
+
+
+end
